@@ -2,11 +2,12 @@ const GRID_WIDTH = 28;
 const GRID_HEIGHT = 28;
 const CELL_SIZE = 30;
 
-const BOMB_NUMBER = 40;
+const BOMB_NUMBER = GRID_HEIGHT*GRID_WIDTH*0.20;
 
 const X = 0;
 const Y = 1;
 
+let show_bombs = false;
 
 function gridToScreen(x, y){
   return [(x - GRID_WIDTH/2)*CELL_SIZE + windowWidth/2, (y - GRID_HEIGHT/2)*CELL_SIZE + windowHeight/2]
@@ -41,6 +42,31 @@ function drawFlag(center){
   pop();
 }
 
+function floodReveal(point){
+  let stack = [];
+  let current;
+  stack.push(point);
+  while(stack != 0){
+    let point = stack.pop();
+    current = grid[point[Y]][point[X]];
+    current.flags = 0;
+    if (current.bombs_around != 0) continue;
+
+    let x = point[X];
+    let y = point[Y];
+
+    for (let i = -1; i < 2; i++){
+      for (let j = -1; j < 2; j++){
+        if (!(i == 0 && j == 0) && x + i >= 0 && x + i < GRID_WIDTH && y + j >= 0 && y + j < GRID_HEIGHT){
+          if (grid[y+j][x+i].flags & cell_flags.HIDDEN){
+            stack.push([x+i, y+j]);
+          }
+        }
+      }
+    }
+  }
+}
+
 const TEXT_COLORS = [[10,10,10], [100, 100, 0], [140, 140, 2], [238, 100, 10], [255, 10, 15], [210, 0, 0], [140, 0, 30], [130, 0, 10]];
 class cell {
   constructor(x, y){
@@ -67,7 +93,7 @@ class cell {
       drawFlag(this.point.map((a) => a + CELL_SIZE/2));
     }
 
-    if (this.flags & cell_flags.BOMB){
+    if ((this.flags & cell_flags.BOMB) && show_bombs){
       push();
       fill(5);
       let point = this.point.map((a) => a + CELL_SIZE/2);
@@ -97,11 +123,15 @@ class cell {
       endGame();
     }else{
       this.flags = 0;
+      if (this.bombs_around == 0){
+        floodReveal(this.grid_point);
+      }
     }
   }
 
   flag(){
-    this.flags ^= cell_flags.FLAGGED;
+    if (this.flags & cell_flags.HIDDEN)
+      this.flags ^= cell_flags.FLAGGED;
   }
   setAsBomb(){
     this.flags |= cell_flags.BOMB;
@@ -192,10 +222,11 @@ function draw() {
 }
 
 function endGame(){
+  show_bombs = true;
   draw();
   freeze = true;
-  fill(0);
-  stroke(255);
+  fill(255);
+  stroke(0);
   strokeWeight(6);
   textStyle(BOLD);
   textSize(windowWidth/20);
