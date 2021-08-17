@@ -119,6 +119,7 @@ class cell {
   }
 
   reveal(){
+    if (this.flags & cell_flags.FLAGGED) return;
     if (this.flags & cell_flags.BOMB != 0){
       endGame();
     }else{
