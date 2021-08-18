@@ -2,7 +2,7 @@ const GRID_WIDTH = 28;
 const GRID_HEIGHT = 28;
 const CELL_SIZE = 30;
 
-const BOMB_NUMBER = GRID_HEIGHT*GRID_WIDTH*0.20;
+const BOMB_NUMBER = GRID_HEIGHT*GRID_WIDTH*0.12;
 
 const X = 0;
 const Y = 1;
@@ -213,7 +213,7 @@ function mousePressed(event) {
   }else if (event.button == 2){
     clickCell(event.layerX, event.layerY, (cell) => cell.flag())
   }
-  
+          
   return false;
 }
 
